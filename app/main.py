@@ -48,7 +48,7 @@ def main():
                         if len(string) > 1:
                             sys.stdout.write(string[1] + "\n")
                         else:
-                            print((string[0].split(" ")) )
+                            print("".join(string[0].split(" ")) )
                         
                     else:
                         sys.stdout.write("\n")
