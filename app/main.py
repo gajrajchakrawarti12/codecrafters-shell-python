@@ -27,6 +27,9 @@ def main():
             if cmd in builtin_cmds:
                 sys.stdout.write(cmd + " is a shell builtin\n")
 
+            elif cmd_path:
+                sys.stdout.write(f"{cmd} is {cmd_path}\n")
+                
             else:
                 sys.stdout.write(cmd + " not found\n")
 
