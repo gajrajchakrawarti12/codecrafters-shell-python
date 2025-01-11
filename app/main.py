@@ -65,7 +65,6 @@ def main():
                                 if i not in ['', ' ']:
                                     with open(i, 'r') as file:
                                         sys.stdout.write(file.read())
-                            sys.stdout.write("\n")
                         except Exception as e:
                             sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
                 
