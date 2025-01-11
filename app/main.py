@@ -1,5 +1,4 @@
 import sys
-commands = set()
 
 def main():
     # Uncomment this block to pass the first stage
@@ -10,9 +9,14 @@ def main():
         # Wait for user input
         user_input = input()
         if user_input == "exit 0":
-            return
-        elif user_input.split(" ")[0] == "echo":
+            break
+        elif user_input == "echo":
             print(user_input.split(' ', 1)[1])
+        if user_input.split(" ")[0] == "type":
+            if user_input.split(" ")[1] is ["echo", "exit", "type"]:
+                print(user_input.split(" ")[1] + " is a shell builtin")
+            else:
+                print(user_input.split(" ")[1] + " not found")
         else:
             print(f"{user_input}: command not found")
             
