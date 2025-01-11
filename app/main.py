@@ -46,7 +46,7 @@ def main():
                     if len(parts) > 1:
                         string = (str(parts[1])).split("'")
                         string = string[1] if len(string) > 1 else string[0]
-                        sys.stdout.write(string[1] + "\n")
+                        sys.stdout.write(string + "\n")
                     else:
                         sys.stdout.write("\n")
 
