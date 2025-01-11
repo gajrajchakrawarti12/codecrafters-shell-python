@@ -3,15 +3,17 @@ commands = set()
 
 def main():
     # Uncomment this block to pass the first stage
-    sys.stdout.write("$ ")
+    while True:
+        sys.stdout.write("$ ")
+        sys.stdout.flush()
 
-    # Wait for user input
-    user_input = input()
-    if user_input not in commands:
+        # Wait for user input
+        user_input = input()
         if user_input == "exit 0":
             return
+        if user_input == "echo":
+            continue
         print(f"{user_input}: command not found")
-        main()
     
 
 
