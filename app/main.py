@@ -8,8 +8,12 @@ def main():
     # Wait for user input
     user_input = input()
     if user_input not in commands:
+        if user_input == "exit 0":
+            return
         print(f"{user_input}: command not found")
         main()
+    
+
 
 
 if __name__ == "__main__":
