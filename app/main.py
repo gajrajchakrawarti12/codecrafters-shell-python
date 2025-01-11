@@ -32,35 +32,34 @@ def main():
 
             elif command == "echo":
                 if len(parts) > 1:
-                    sys.stdout.write(parts[1])
+                    sys.stdout.write(parts[1] + "\n")
                 else:
                     sys.stdout.write()
 
             elif command == "type":
                 if len(parts) < 2:
-                    sys.stdout.write("type: missing argument")
+                    sys.stdout.write("type: missing argument\n")
                     continue
                 
                 cmd = parts[1]
                 cmd_path = find_command_path(cmd, paths)
                 
                 if cmd in builtin_cmds:
-                    sys.stdout.write(f"{cmd} is a shell builtin")
+                    sys.stdout.write(f"{cmd} is a shell builtin\n")
                 elif cmd_path:
-                    sys.stdout.write(f"{cmd} is {cmd_path}")
+                    sys.stdout.write(f"{cmd} is {cmd_path}\n")
                 else:
-                    sys.stdout.write(f"{cmd}: command not found")
+                    sys.stdout.write(f"{cmd}: command not found\n")
             
             else:
                 cmd_path = find_command_path(command, paths)
                 if cmd_path:
-                    print("A")
                     subprocess.run([cmd_path] + (parts[1:] if len(parts) > 1 else []))
                 else:
-                    sys.stdout.write(f"{command}: command not found")
+                    sys.stdout.write(f"{command}: command not found\n")
 
         except Exception as e:
-            sys.stdout.write(f"Error: {e}")
+            sys.stdout.write(f"Error: {e}\n")
 
 if __name__ == "__main__":
     main()
