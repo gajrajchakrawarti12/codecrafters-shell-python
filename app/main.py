@@ -12,8 +12,9 @@ def main():
         if user_input == "exit 0":
             return
         if user_input == "echo":
-            continue
-        print(f"{user_input}: command not found")
+            print("A")
+        else:
+            print(f"{user_input}: command not found")
     
 
 
