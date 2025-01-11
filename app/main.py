@@ -13,7 +13,7 @@ def main():
     builtin_cmds = ["echo", "exit", "type"]
     path_env = os.environ.get("PATH", "")
     paths = path_env.split(os.pathsep)
-    
+
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
@@ -54,6 +54,7 @@ def main():
             else:
                 cmd_path = find_command_path(command, paths)
                 if cmd_path:
+                    print("A")
                     subprocess.run([cmd_path] + (parts[1:] if len(parts) > 1 else []))
                 else:
                     sys.stdout.write(f"{command}: command not found")
