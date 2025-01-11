@@ -57,6 +57,18 @@ def main():
                     else:
                         sys.stdout.write("\n")
 
+                case "cat":
+                    if len(parts) > 1:
+                        try:
+                            string = (str(parts[1])).split("'")
+                            for i in string:
+                                if len(i) > 0:
+                                    with open(i, 'r') as file:
+                                        sys.stdout.write(file.read() + "\n")
+                        except Exception as e:
+                            sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
+                
+
                 case "type":
                     if len(parts) < 2:
                         sys.stdout.write("type: missing argument\n")
