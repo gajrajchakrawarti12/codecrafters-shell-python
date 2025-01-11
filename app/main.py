@@ -13,7 +13,7 @@ def main():
     builtin_cmds = ["echo", "exit", "type"]
     path_env = os.environ.get("PATH", "")
     paths = path_env.split(os.pathsep)
-
+    print(paths)
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
@@ -32,34 +32,34 @@ def main():
 
             elif command == "echo":
                 if len(parts) > 1:
-                    print(parts[1])
+                    sys.stdout.write(parts[1])
                 else:
-                    print()
+                    sys.stdout.write()
 
             elif command == "type":
                 if len(parts) < 2:
-                    print("type: missing argument")
+                    sys.stdout.write("type: missing argument")
                     continue
                 
                 cmd = parts[1]
                 cmd_path = find_command_path(cmd, paths)
                 
                 if cmd in builtin_cmds:
-                    print(f"{cmd} is a shell builtin")
+                    sys.stdout.write(f"{cmd} is a shell builtin")
                 elif cmd_path:
-                    print(f"{cmd} is {cmd_path}")
+                    sys.stdout.write(f"{cmd} is {cmd_path}")
                 else:
-                    print(f"{cmd}: command not found")
+                    sys.stdout.write(f"{cmd}: command not found")
             
             else:
                 cmd_path = find_command_path(command, paths)
                 if cmd_path:
                     subprocess.run([cmd_path] + (parts[1:] if len(parts) > 1 else []))
                 else:
-                    print(f"{command}: command not found")
+                    sys.stdout.write(f"{command}: command not found")
 
         except Exception as e:
-            print(f"Error: {e}")
+            sys.stdout.write(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
