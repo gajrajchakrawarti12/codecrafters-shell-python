@@ -13,7 +13,7 @@ def main():
     builtin_cmds = ["echo", "exit", "type"]
     path_env = os.environ.get("PATH", "")
     paths = path_env.split(os.pathsep)
-    print(paths)
+    
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
