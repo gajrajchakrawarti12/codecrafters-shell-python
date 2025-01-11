@@ -55,7 +55,7 @@ def main():
                 cmd_path = find_command_path(command, paths)
                 if cmd_path:
                     print(cmd_path + " " +str(parts[1:] if len(parts) > 1 else []))
-                    subprocess.run([cmd_path] + (parts[1:] if len(parts) > 1 else []))
+                    subprocess.run([parts[0]] + (parts[1:] if len(parts) > 1 else []))
                 else:
                     sys.stdout.write(f"{command}: command not found\n")
 
