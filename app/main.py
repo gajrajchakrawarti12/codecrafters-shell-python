@@ -37,7 +37,6 @@ def main():
                 case "cd":
                     if len(parts) > 1:
                         os.chdir(parts[1])
-                        sys.stdout.write(os.getcwd() + "\n")
                     else:
                         sys.stdout.write("cd: missing argument\n")
 
