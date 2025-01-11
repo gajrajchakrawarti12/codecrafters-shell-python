@@ -1,47 +1,65 @@
 import sys
 import os
+import subprocess
+
+def find_command_path(cmd, paths):
+    for path in paths:
+        cmd_path = os.path.join(path, cmd)
+        if os.path.isfile(cmd_path) and os.access(cmd_path, os.X_OK):
+            return cmd_path
+    return None
 
 def main():
     builtin_cmds = ["echo", "exit", "type"]
-    PATH = os.environ.get("PATH")
+    path_env = os.environ.get("PATH", "")
+    paths = path_env.split(os.pathsep)
+
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
 
-        # Wait for user input
-        user_input = input()
-        if user_input == "exit 0":
-            break
+        try:
+            user_input = input().strip()
+            if not user_input:
+                continue
 
-        elif user_input.split(" ")[0] == "echo":
-            sys.stdout.write(user_input.split(' ', 1)[1] + "\n")
+            parts = user_input.split(" ", 1)
+            command = parts[0]
 
-        elif user_input.split(" ")[0] == "type":
-            cmd = user_input.split(" ")[1]
-            cmd_path = None
-            paths = PATH.split(":")
-            for path in paths:
-                if os.path.isfile(f"{path}/{cmd}"):
-                    cmd_path = f"{path}/{cmd}"
+            if command == "exit":
+                code = int(parts[1]) if len(parts) > 1 else 0
+                sys.exit(code)
+
+            elif command == "echo":
+                if len(parts) > 1:
+                    print(parts[1])
+                else:
+                    print()
+
+            elif command == "type":
+                if len(parts) < 2:
+                    print("type: missing argument")
+                    continue
+                
+                cmd = parts[1]
+                cmd_path = find_command_path(cmd, paths)
+                
+                if cmd in builtin_cmds:
+                    print(f"{cmd} is a shell builtin")
+                elif cmd_path:
+                    print(f"{cmd} is {cmd_path}")
+                else:
+                    print(f"{cmd}: command not found")
             
-            if cmd in builtin_cmds:
-                sys.stdout.write(cmd + " is a shell builtin\n")
-
-            elif cmd_path:
-                sys.stdout.write(f"{cmd} is {cmd_path}\n")
-
             else:
-                sys.stdout.write(cmd + " not found\n")
+                cmd_path = find_command_path(command, paths)
+                if cmd_path:
+                    subprocess.run([cmd_path] + (parts[1:] if len(parts) > 1 else []))
+                else:
+                    print(f"{command}: command not found")
 
-        else:
-            if os.path.isfile(user_input.split(" ")[0]):
-                os.system(user_input)
-            else:
-                print(f"{user_input}: command not found")
-            
-    
-
-
+        except Exception as e:
+            print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
