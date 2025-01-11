@@ -29,12 +29,15 @@ def main():
 
             elif cmd_path:
                 sys.stdout.write(f"{cmd} is {cmd_path}\n")
-                
+
             else:
                 sys.stdout.write(cmd + " not found\n")
 
+        elif os.path.isfile(user_input.split(" ")[0]):
+                os.system(user_input)
+                
         else:
-            sys.stdout.write(f"{user_input}: command not found\n")
+            print(f"{user_input}: command not found")
             
     
 
