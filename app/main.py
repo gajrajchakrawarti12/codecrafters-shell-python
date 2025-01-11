@@ -49,7 +49,7 @@ def main():
                 elif cmd_path:
                     sys.stdout.write(f"{cmd} is {cmd_path}\n")
                 else:
-                    sys.stdout.write(f"{cmd}: command not found\n")
+                    sys.stdout.write(f"{cmd}: not found\n")
             
             else:
                 cmd_path = find_command_path(command, paths)
