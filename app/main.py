@@ -10,9 +10,11 @@ def main():
         user_input = input()
         if user_input == "exit 0":
             break
-        elif user_input == "echo":
+
+        elif user_input.split(" ")[0] == "echo":
             print(user_input.split(' ', 1)[1])
-        if user_input.split(" ")[0] == "type":
+            
+        elif user_input.split(" ")[0] == "type":
             if user_input.split(" ")[1] is ["echo", "exit", "type"]:
                 print(user_input.split(" ")[1] + " is a shell builtin")
             else:
