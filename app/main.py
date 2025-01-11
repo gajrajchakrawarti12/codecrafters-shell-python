@@ -33,7 +33,7 @@ def main():
             else:
                 sys.stdout.write(cmd + " not found\n")
 
-        elif os.path.isfile(user_input.split(" ")[0]):
+        elif os.path.isfile(user_input.split(" ")[1]):
                 os.system(user_input)
 
         else:
