@@ -44,9 +44,10 @@ def main():
 
                 case "echo":
                     if len(parts) > 1:
-                        sys.stdout.write(parts[1] + "\n")
+                        string = parts.split("'")
+                        sys.stdout.write(string + "\n")
                     else:
-                        sys.stdout.write()
+                        sys.stdout.write("\n")
 
                 case "type":
                     if len(parts) < 2:
