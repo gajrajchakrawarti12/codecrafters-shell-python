@@ -31,7 +31,7 @@ def main():
                 sys.exit(code)
 
             elif command == "pwd":
-                sys.stdout.write(os.getcwd())
+                sys.stdout.write(os.getcwd() + "\n")
 
             elif command == "echo":
                 if len(parts) > 1:
