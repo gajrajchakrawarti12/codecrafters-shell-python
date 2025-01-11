@@ -11,10 +11,11 @@ def main():
         user_input = input()
         if user_input == "exit 0":
             return
-        if {user_input.split(" ")}[0] == "echo":
-            print("A")
+        elif user_input.split(" ")[0] == "echo":
+            print(user_input.split(' ', 1)[1])
         else:
             print(f"{user_input}: command not found")
+            
     
 
 
