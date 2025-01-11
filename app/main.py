@@ -36,9 +36,10 @@ def main():
 
                 case "cd":
                     if len(parts) > 1:
-                        os.chdir(parts[1])
-                    else:
-                        sys.stdout.write("cd: missing argument\n")
+                        try:
+                            os.chdir(parts[1])
+                        except Exception as e:
+                            sys.stdout.write("cd: missing argument\n")
 
 
                 case "echo":
