@@ -37,7 +37,7 @@ def main():
                 case "cd":
                     if len(parts) > 1:
                         try:
-                            os.chdir(parts[1])
+                            os.chdir(os.path.expanduser(parts[1]))
                         except Exception as e:
                             sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
 
