@@ -10,7 +10,7 @@ def find_command_path(cmd, paths):
     return None
 
 def main():
-    builtin_cmds = ["echo", "exit", "type"]
+    builtin_cmds = ["echo", "exit", "type", "pwd"]
     path_env = os.environ.get("PATH", "")
     paths = path_env.split(os.pathsep)
 
@@ -29,6 +29,9 @@ def main():
             if command == "exit":
                 code = int(parts[1]) if len(parts) > 1 else 0
                 sys.exit(code)
+
+            elif command == "pwd":
+                sys.stdout.write(os.getcwd())
 
             elif command == "echo":
                 if len(parts) > 1:
