@@ -39,7 +39,7 @@ def main():
                         try:
                             os.chdir(parts[1])
                         except Exception as e:
-                            sys.stdout.write(f"{" ".join(parts)}: No such file or directory\n")
+                            sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
 
 
                 case "echo":
