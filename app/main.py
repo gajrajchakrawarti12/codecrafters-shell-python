@@ -11,7 +11,7 @@ def main():
         user_input = input()
         if user_input == "exit 0":
             return
-        if user_input == "echo":
+        if {user_input.split(" ")}[0] == "echo":
             print("A")
         else:
             print(f"{user_input}: command not found")
