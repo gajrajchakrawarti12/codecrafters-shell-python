@@ -61,10 +61,10 @@ def main():
                     if len(parts) > 1:
                         try:
                             string = (str(parts[1])).split("'")
+                            print(string)
                             for i in string:
                                 if len(i) > 0:
                                     with open(i, 'r') as file:
-                                        print(i, file.read())
                                         sys.stdout.write(file.read() + "\n")
                         except Exception as e:
                             sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
