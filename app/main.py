@@ -44,7 +44,7 @@ def main():
 
                 case "echo":
                     if len(parts) > 1:
-                        string = parts[1].split("'")
+                        string = (str(parts[1])).split("'")
                         sys.stdout.write(string + "\n")
                     else:
                         sys.stdout.write("\n")
