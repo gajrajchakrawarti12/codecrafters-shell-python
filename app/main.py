@@ -38,7 +38,7 @@ def main():
                 case "ls":
                     try:
                         if ">" in parts:
-                            cmd_part = parts[parts.index('>') - 1]
+                            cmd_part = parts[:parts.index('>')]
                             output_file = parts[parts.index('>') + 1]
                             with open(output_file, 'w') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
