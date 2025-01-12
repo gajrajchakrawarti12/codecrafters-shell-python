@@ -43,7 +43,7 @@ def main():
 
 
                 case "echo":
-                    sys.stdout.write(" ".join(parts[1:]))
+                    sys.stdout.write(" ".join(parts[1:]) + "\n")
 
                 case "cat":
                     try:
