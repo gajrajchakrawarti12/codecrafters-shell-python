@@ -75,7 +75,7 @@ def main():
                             output_file = parts[parts.index('2>') + 1]
                             result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                             with open(output_file, 'w') as f:  
-                                print(result.stdout)
+                                sys.stdout.write(result.stdout)
                                 if result.stderr:                
                                     f.write(str(result.stderr))
                         else:
