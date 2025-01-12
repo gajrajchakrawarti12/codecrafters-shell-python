@@ -35,14 +35,15 @@ def main():
                 case "pwd":
                     sys.stdout.write(os.getcwd() + "\n")
 
-                case "ls":
-                    try:
-                        print("ls command", parts)
-                    except subprocess.CalledProcessError as e:
-                        sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
+                # case "ls":
+                #     try:
+                #         print("ls command", parts)
+                #     except subprocess.CalledProcessError as e:
+                #         sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
 
                 case "cd":
                     try:
+                        print("A", parts, command)
                         os.chdir(os.path.expanduser(parts[1]))
                     except Exception as e:
                         sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
