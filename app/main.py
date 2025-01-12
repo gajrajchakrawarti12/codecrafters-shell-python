@@ -35,6 +35,12 @@ def main():
                 case "pwd":
                     sys.stdout.write(os.getcwd() + "\n")
 
+                case "ls":
+                    try:
+                        subprocess.run(["ls", "-l"], check=True, cwd=os.getcwd())
+                    except subprocess.CalledProcessError as e:
+                        sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
+
                 case "cd":
                     try:
                         os.chdir(os.path.expanduser(parts[1]))
