@@ -70,10 +70,18 @@ def main():
 
                 case "cat":
                     try:
-                        for i in parts[1:]:
-                            if i not in ['', ' ']:
-                                with open(i, 'r') as file:
-                                    sys.stdout.write(file.read())
+                        if "1>" in parts:
+                            cmd_part = parts[:parts.index('1>')]
+                            output_file = parts[parts.index('1>') + 1]
+                            with open(output_file, 'w') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:
+                                    print(f"Error: {result.stderr.strip()}")
+                        else:
+                            for i in parts[1:]:
+                                if i not in ['', ' ']:
+                                    with open(i, 'r') as file:
+                                        sys.stdout.write(file.read())
                     except Exception as e:
                         sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
                 
