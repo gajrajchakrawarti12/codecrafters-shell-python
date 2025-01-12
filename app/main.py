@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+import shlex
 
 def find_command_path(cmd, paths):
     for path in paths:
@@ -10,7 +11,7 @@ def find_command_path(cmd, paths):
     return None
 
 def main():
-    builtin_cmds = ["echo", "exit", "type", "pwd"]
+    builtin_cmds = ["echo", "exit", "type", "pwd", "cd"]
     path_env = os.environ.get("PATH", "")
     paths = path_env.split(os.pathsep)
 
@@ -19,11 +20,11 @@ def main():
         sys.stdout.flush()
 
         try:
-            user_input = input().strip()
+            user_input = input()
             if not user_input:
                 continue
 
-            parts = user_input.split(" ", 1)
+            parts = shlex.split(user_input, posix=True)
             command = parts[0]
 
             match(command):
@@ -35,38 +36,23 @@ def main():
                     sys.stdout.write(os.getcwd() + "\n")
 
                 case "cd":
-                    if len(parts) > 1:
-                        try:
-                            os.chdir(os.path.expanduser(parts[1]))
-                        except Exception as e:
-                            sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
+                    try:
+                        os.chdir(os.path.expanduser(parts[1]))
+                    except Exception as e:
+                        sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
 
 
                 case "echo":
-                    if len(parts) > 1:
-                        string = (str(parts[1])).split("'")
-                        if len(string) > 1:
-                            sys.stdout.write("".join(string) + "\n")
-                        else:
-                            string = string[0].split(" ")
-                            for i in string:
-                                if len(i) > 0:
-                                    sys.stdout.write(i + " ")
-                            sys.stdout.write("\n")
-                        
-                    else:
-                        sys.stdout.write("\n")
+                    sys.stdout.write(" ".join(parts[1:]))
 
                 case "cat":
-                    if len(parts) > 1:
-                        try:
-                            string = (str(parts[1])).split("'")
-                            for i in string:
-                                if i not in ['', ' ']:
-                                    with open(i, 'r') as file:
-                                        sys.stdout.write(file.read())
-                        except Exception as e:
-                            sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
+                    try:
+                        for i in parts[1:]:
+                            if i not in ['', ' ']:
+                                with open(i, 'r') as file:
+                                    sys.stdout.write(file.read())
+                    except Exception as e:
+                        sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
                 
 
                 case "type":
