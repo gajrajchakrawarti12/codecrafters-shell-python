@@ -37,7 +37,7 @@ def main():
 
                 case "ls":
                     try:
-                        subprocess.run(["ls", "-l"], check=True, cwd=os.getcwd())
+                        sys.stdout.write("ls command", parts)
                     except subprocess.CalledProcessError as e:
                         sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
 
