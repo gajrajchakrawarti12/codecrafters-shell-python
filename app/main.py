@@ -49,8 +49,6 @@ def main():
                             output_file = parts[parts.index('2>') + 1]
                             with open(output_file, 'w') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
-                                if result.stderr:
-                                    print(f"Error: {result.stderr.strip()}")
                     except subprocess.CalledProcessError as e:
                         sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
 
