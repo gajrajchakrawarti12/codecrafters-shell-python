@@ -74,7 +74,7 @@ def main():
                             output_file = parts[parts.index('2>') + 1]
                             with open(output_file, 'w') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
-                                f.write(str(result.stderr))
+                                f.write(str(result))
                         else:
                             sys.stdout.write(" ".join(parts[1:]) + "\n")
                     except Exception as e:
