@@ -57,8 +57,8 @@ def main():
                 case "echo":
                     try:
                         if "1>" in parts:
-                            cmd_part = parts[:parts.index('>')]
-                            output_file = parts[parts.index('>') + 1]
+                            cmd_part = parts[:parts.index('1>')]
+                            output_file = parts[parts.index('1>') + 1]
                             with open(output_file, 'w') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
                                 if result.stderr:
