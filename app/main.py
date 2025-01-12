@@ -49,7 +49,7 @@ def main():
                             output_file = parts[parts.index('2>') + 1]
                             with open(output_file, 'w') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
-                                f.write(result)
+                                f.write(str(result))
                     except subprocess.CalledProcessError as e:
                         sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
 
