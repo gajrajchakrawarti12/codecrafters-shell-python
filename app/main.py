@@ -70,11 +70,11 @@ def main():
                                 if result.stderr:
                                     print(f"Error: {result.stderr.strip()}")
                         elif "2>" in parts:
-                            cmd_part = parts[1:parts.index('2>')]
+                            cmd_part = parts[parts.index('2>')]
                             output_file = parts[parts.index('2>') + 1]
                             with open(output_file, 'w') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
-                                print(result)
+                                f.write(str(result.stderr))
                         else:
                             sys.stdout.write(" ".join(parts[1:]) + "\n")
                     except Exception as e:
