@@ -72,7 +72,7 @@ def main():
                         elif "2>" in parts:
                             cmd_part = parts[:parts.index('2>')]
                             output_file = parts[parts.index('2>') + 1]
-                            result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                            result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                             with open(output_file, 'w') as f:                              
                                 f.write(str(result.stderr))
                         else:
