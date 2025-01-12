@@ -49,7 +49,8 @@ def main():
                             output_file = parts[parts.index('2>') + 1]
                             with open(output_file, 'w') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
-                                f.write(str(result.stderr))
+                                if result.stderr:
+                                    f.write(str(result.stderr))
                     except subprocess.CalledProcessError as e:
                         sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
 
@@ -72,10 +73,12 @@ def main():
                         elif "2>" in parts:
                             cmd_part = parts[:parts.index('2>')]
                             output_file = parts[parts.index('2>') + 1]
+                            result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                             with open(output_file, 'w') as f:  
-                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
-                                print(result)                     
-                                f.write(str(result.stderr))
+                                
+                                print(result)
+                                if result.stderr:                
+                                    f.write(str(result.stderr))
                         else:
                             sys.stdout.write(" ".join(parts[1:]) + "\n")
                     except Exception as e:
