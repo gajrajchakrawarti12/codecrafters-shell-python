@@ -44,7 +44,7 @@ def main():
                 case "cd":
                     try:
                         print("A", parts, command)
-                        os.chdir(os.path.expanduser(parts[1]))
+                        # os.chdir(os.path.expanduser(parts[1]))
                     except Exception as e:
                         sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
 
