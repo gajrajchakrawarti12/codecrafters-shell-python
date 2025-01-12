@@ -92,6 +92,14 @@ def main():
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
                                 if result.stderr:
                                     print(f"Error: {result.stderr.strip()}")
+                        elif "2>" in parts:
+                            cmd_part = parts[:parts.index('2>')]
+                            output_file = parts[parts.index('2>') + 1]
+                            result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                            with open(output_file, 'w') as f:  
+                                sys.stdout.write(result.stdout)
+                                if result.stderr:                
+                                    f.write(str(result.stderr))
                         else:
                             for i in parts[1:]:
                                 if i not in ['', ' ']:
