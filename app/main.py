@@ -9,6 +9,8 @@ def handle_redirection(cmd_parts):
     Handles I/O redirection for commands.
     Returns the modified cmd_parts, stdout file, and stderr file.
     """
+    stdout = None
+    stderr = None
 
     if '>' in cmd_parts or '>>' in cmd_parts or '1>' in cmd_parts or '1>>' in cmd_parts or '2>' in cmd_parts or '2>>' in cmd_parts:
         while '>' in cmd_parts:
