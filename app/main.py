@@ -60,6 +60,7 @@ def execute_command(cmd_parts, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         print(result)
         if result.stderr:
             sys.stdout.write(result.stderr)
+            stdout.close()
     except FileNotFoundError:
         sys.stderr.write(f"{cmd_parts[0]}: command not found\n")
     except Exception as e:
