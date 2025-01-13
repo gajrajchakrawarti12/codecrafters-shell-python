@@ -60,7 +60,9 @@ def execute_command(cmd_parts, f1=None, f2=None):
         if result.stderr:
             sys.stdout.write(result.stderr)
         elif result.stdout:
-            if 'echo' != cmd_parts[0]:
+            if 'echo' == cmd_parts[0]:
+                print(result)
+            else:
                 sys.stdout.write(result.stdout)
     except FileNotFoundError:
         sys.stderr.write(f"{cmd_parts[0]}: command not found\n")
