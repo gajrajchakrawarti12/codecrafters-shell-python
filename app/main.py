@@ -56,6 +56,7 @@ def execute_command(cmd_parts, stdout=None, stderr=None):
     Executes the given command with optional stdout and stderr redirection.
     """
     try:
+        print(1)
         result = subprocess.run(cmd_parts, stdout=stdout, stderr=stderr, text=True)
         print(result)
     except FileNotFoundError:
