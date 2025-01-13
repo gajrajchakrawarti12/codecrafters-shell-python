@@ -1,153 +1,176 @@
-import os
 import sys
-import shlex
+import os
 import subprocess
-from shutil import which
+import shlex
 
-def handle_redirection(cmd_parts):
-    """
-    Handles I/O redirection for commands.
-    Returns the modified cmd_parts, stdout file, and stderr file.
-    """
-    stdout = None
-    stderr = None
-
-    if '>' in cmd_parts or '>>' in cmd_parts or '1>' in cmd_parts or '1>>' in cmd_parts or '2>' in cmd_parts or '2>>' in cmd_parts:
-        while '>' in cmd_parts:
-            idx = cmd_parts.index('>')
-            output_file = cmd_parts[idx + 1]
-            stdout = open(output_file, 'w')
-            cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
-        
-        while '>>' in cmd_parts:
-            idx = cmd_parts.index('>>')
-            output_file = cmd_parts[idx + 1]
-            stdout = open(output_file, 'a')
-            cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
-        
-        while '1>' in cmd_parts:
-            idx = cmd_parts.index('1>')
-            output_file = cmd_parts[idx + 1]
-            stdout = open(output_file, 'w')
-            cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
-        
-        while '1>>' in cmd_parts:
-            idx = cmd_parts.index('1>>')
-            output_file = cmd_parts[idx + 1]
-            with open(output_file, 'a') as f:
-                result = subprocess.run(cmd_parts[:idx], stdout=f, stderr=f, text=True)
-                cmd_parts = []
-        
-        while '2>' in cmd_parts:
-            idx = cmd_parts.index('2>')
-            output_file = cmd_parts[idx + 1]
-            stderr = open(output_file, 'w')
-            cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
-        
-        while '2>>' in cmd_parts:
-            idx = cmd_parts.index('2>>')
-            output_file = cmd_parts[idx + 1]
-            stderr = open(output_file, 'a')
-            cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
-    
-    return cmd_parts, stdout, stderr
-
-def execute_command(cmd_parts, stdout=None, stderr=None):
-    """
-    Executes the given command with optional stdout and stderr redirection.
-    """
-    try:
-        subprocess.run(cmd_parts, stdout=stdout, stderr=stderr, text=True)
-    except FileNotFoundError:
-        sys.stderr.write(f"{cmd_parts[0]}: command not found\n")
-    except Exception as e:
-        sys.stderr.write(f"Error: {e}\n")
-
-def builtin_cd(path):
-    """
-    Change the current working directory.
-    """
-    try:
-        os.chdir(os.path.expanduser(path))
-    except FileNotFoundError:
-        sys.stderr.write(f"cd: {path}: No such file or directory\n")
-    except Exception as e:
-        sys.stderr.write(f"cd: {e}\n")
-
-def builtin_type(cmd, builtin_cmds):
-    """
-    Prints information about a command (builtin or external).
-    """
-    cmd_path = which(cmd)
-    if cmd in builtin_cmds:
-        sys.stdout.write(f"{cmd} is a shell builtin\n")
-    elif cmd_path:
-        sys.stdout.write(f"{cmd} is {cmd_path}\n")
-    else:
-        sys.stderr.write(f"{cmd}: not found\n")
+def find_command_path(cmd, paths):
+    for path in paths:
+        cmd_path = os.path.join(path, cmd)
+        if os.path.isfile(cmd_path) and os.access(cmd_path, os.X_OK):
+            return cmd_path
+    return None
 
 def main():
-    """
-    Main loop of the shell interpreter.
-    """
     builtin_cmds = ["echo", "exit", "type", "pwd", "cd"]
+    path_env = os.environ.get("PATH", "")
+    paths = path_env.split(os.pathsep)
+
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
+
         try:
             user_input = input()
-            if not user_input.strip():
+            if not user_input:
                 continue
 
-            # Parse the command and handle redirection
-            cmd_parts, stdout, stderr = handle_redirection(shlex.split(user_input, posix=True))
-            if not cmd_parts:
-                continue
+            parts = shlex.split(user_input, posix=True)
+            command = parts[0]
 
-            command = cmd_parts[0]
-
-            # Handle built-in commands
-            match command:
+            match(command):
                 case "exit":
-                    code = int(cmd_parts[1]) if len(cmd_parts) > 1 else 0
+                    code = int(parts[1]) if len(parts) > 1 else 0
                     sys.exit(code)
 
                 case "pwd":
                     sys.stdout.write(os.getcwd() + "\n")
 
-                case "cd":
-                    if len(cmd_parts) < 2:
-                        sys.stderr.write("cd: missing argument\n")
-                    else:
-                        builtin_cd(cmd_parts[1])
+                case "ls":
+                    try:
+                        if ">" in parts:
+                            cmd_part = parts[:parts.index('>')]
+                            output_file = parts[parts.index('>') + 1]
+                            with open(output_file, 'w') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:
+                                    print(f"Error: {result.stderr.strip()}")
+                        elif "2>" in parts:
+                            cmd_part = parts[:parts.index('2>')]
+                            output_file = parts[parts.index('2>') + 1]
+                            with open(output_file, 'w') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:
+                                    f.write(str(result.stderr))
+                        elif ">>" in parts:
+                            cmd_part = parts[:parts.index('>>')]
+                            output_file = parts[parts.index('>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:
+                                    sys.stdout.write(str(result.stderr))
+                        elif "2>>" in parts:
+                            cmd_part = parts[:parts.index('2>>')]
+                            output_file = parts[parts.index('2>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=f, text=True)
+                    except subprocess.CalledProcessError as e:
+                        sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
 
-                case "type":
-                    if len(cmd_parts) < 2:
-                        sys.stderr.write("type: missing argument\n")
-                    else:
-                        builtin_type(cmd_parts[1], builtin_cmds)
+                case "cd":
+                    try:
+                        os.chdir(os.path.expanduser(parts[1]))
+                    except Exception as e:
+                        sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
+
 
                 case "echo":
-                    sys.stdout.write(" ".join(cmd_parts[1:]) + "\n")
+                    try:   
+                        if ">" in parts:
+                            cmd_part = parts[:parts.index('>')]
+                            output_file = parts[parts.index('>') + 1]
+                            with open(output_file, 'w') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:
+                                    print(f"Error: {result.stderr.strip()}")
+                        elif "1>" in parts:
+                            cmd_part = parts[:parts.index('1>')]
+                            output_file = parts[parts.index('1>') + 1]
+                            with open(output_file, 'w') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:
+                                    print(f"Error: {result.stderr.strip()}")
+                        elif "2>" in parts:
+                            cmd_part = parts[:parts.index('2>')]
+                            output_file = parts[parts.index('2>') + 1]
+                            result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                            with open(output_file, 'w') as f:  
+                                sys.stdout.write(result.stdout)
+                                if result.stderr:                
+                                    f.write(str(result.stderr))
+                        elif "1>>" in parts:
+                            cmd_part = parts[:parts.index('1>>')]
+                            output_file = parts[parts.index('1>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:                
+                                    f.write(str(result.stderr))
+                        elif "2>>" in parts:
+                            cmd_part = parts[:parts.index('2>>')]
+                            output_file = parts[parts.index('2>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=f, text=True)
+                                if result.stdout:
+                                    sys.stdout.write(result.stdout)
+                        else:
+                            sys.stdout.write(" ".join(parts[1:]) + "\n")
+                    except Exception as e:
+                        sys.stdout.write(f"echo: {e}\n")
 
+                case "cat":
+                    try:
+                        if "1>" in parts:
+                            cmd_part = parts[:parts.index('1>')]
+                            output_file = parts[parts.index('1>') + 1]
+                            with open(output_file, 'w') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
+                                if result.stderr:
+                                    print(f"Error: {result.stderr.strip()}")
+                        elif "2>" in parts:
+                            cmd_part = parts[:parts.index('2>')]
+                            output_file = parts[parts.index('2>') + 1]
+                            result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                            with open(output_file, 'w') as f:  
+                                sys.stdout.write(result.stdout)
+                                if result.stderr:                
+                                    f.write(str(result.stderr))
+                        elif "2>>" in parts:
+                            cmd_part = parts[:parts.index('2>>')]
+                            output_file = parts[parts.index('2>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=f, text=True)
+                        else:
+                            for i in parts[1:]:
+                                if i not in ['', ' ']:
+                                    with open(i, 'r') as file:
+                                        sys.stdout.write(file.read())
+                    except Exception as e:
+                        sys.stdout.write(f"{": ".join(parts)}: No such file or directory\n")
+                
+
+                case "type":
+                    if len(parts) < 2:
+                        sys.stdout.write("type: missing argument\n")
+                        continue
+                    
+                    cmd = parts[1]
+                    cmd_path = find_command_path(cmd, paths)
+                    
+                    if cmd in builtin_cmds:
+                        sys.stdout.write(f"{cmd} is a shell builtin\n")
+                    elif cmd_path:
+                        sys.stdout.write(f"{cmd} is {cmd_path}\n")
+                    else:
+                        sys.stdout.write(f"{cmd}: not found\n")
+                
                 case _:
-                    # Attempt to execute external commands
-                    execute_command(cmd_parts, stdout=stdout, stderr=stderr)
+                    cmd_path = find_command_path(command, paths)
+                    if cmd_path:
+                        subprocess.run(parts)
+                    else:
+                        sys.stdout.write(f"{command}: command not found\n")
 
-            # Close any opened files
-            if stdout:
-                stdout.close()
-            if stderr:
-                stderr.close()
-
-        except KeyboardInterrupt:
-            sys.stdout.write("\n")
-            continue
-        except EOFError:
-            sys.stdout.write("\nExiting shell.\n")
-            break
         except Exception as e:
-            sys.stderr.write(f"Error: {e}\n")
+            sys.stdout.write(f"Error: {e}\n")
 
 if __name__ == "__main__":
-    main()
+    main() 
