@@ -135,7 +135,7 @@ def main():
 
                 case _:
                     # Attempt to execute external commands
-                    execute_command(cmd_parts, stdout=stdout, stderr=stderr)
+                    execute_command(cmd_parts, f1=stdout, f2=stderr)
 
         except KeyboardInterrupt:
             sys.stdout.write("\n")
