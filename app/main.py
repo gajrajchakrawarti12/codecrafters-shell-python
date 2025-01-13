@@ -70,6 +70,7 @@ def main():
 
                 case "echo":
                     try:
+                        print(parts)
                         if ">" in parts:
                             cmd_part = parts[:parts.index('>')]
                             output_file = parts[parts.index('>') + 1]
