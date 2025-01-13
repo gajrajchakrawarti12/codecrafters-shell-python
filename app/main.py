@@ -35,9 +35,8 @@ def handle_redirection(cmd_parts):
             idx = cmd_parts.index('1>>')
             output_file = cmd_parts[idx + 1]
             with open(output_file, 'a') as f:
-                result = subprocess.run(cmd_parts[:idx], stdout=f, stderr=subprocess.PIPE, text=True)
-                if result.stderr:                
-                    f.write(str(result.stderr))
+                result = subprocess.run(cmd_parts[:idx], stdout=f, stderr=f, text=True)
+                cmd_parts = []
         
         while '2>' in cmd_parts:
             idx = cmd_parts.index('2>')
