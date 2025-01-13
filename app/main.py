@@ -69,8 +69,7 @@ def main():
 
 
                 case "echo":
-                    try:
-                        
+                    try:   
                         if ">" in parts:
                             cmd_part = parts[:parts.index('>')]
                             output_file = parts[parts.index('>') + 1]
@@ -78,7 +77,7 @@ def main():
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
                                 if result.stderr:
                                     print(f"Error: {result.stderr.strip()}")
-                        if "1>" in parts:
+                        elif "1>" in parts:
                             cmd_part = parts[:parts.index('1>')]
                             output_file = parts[parts.index('1>') + 1]
                             with open(output_file, 'w') as f:
@@ -101,7 +100,6 @@ def main():
                                 if result.stderr:                
                                     f.write(str(result.stderr))
                         else:
-                            print(parts)
                             sys.stdout.write(" ".join(parts[1:]) + "\n")
                     except Exception as e:
                         sys.stdout.write(f"echo: {e}\n")
