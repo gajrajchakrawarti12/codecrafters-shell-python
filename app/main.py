@@ -104,6 +104,13 @@ def main():
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
                                 if result.stderr:                
                                     f.write(str(result.stderr))
+                        elif "2>>" in parts:
+                            cmd_part = parts[:parts.index('2>>')]
+                            output_file = parts[parts.index('2>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=subprocess.PIPE, stderr=f, text=True)
+                                if result.stdout:
+                                    sys.stdout.write(result.stdout)
                         else:
                             sys.stdout.write(" ".join(parts[1:]) + "\n")
                     except Exception as e:
@@ -126,6 +133,11 @@ def main():
                                 sys.stdout.write(result.stdout)
                                 if result.stderr:                
                                     f.write(str(result.stderr))
+                        elif "2>>" in parts:
+                            cmd_part = parts[:parts.index('2>>')]
+                            output_file = parts[parts.index('2>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=f, text=True)
                         else:
                             for i in parts[1:]:
                                 if i not in ['', ' ']:
