@@ -57,7 +57,12 @@ def main():
                             with open(output_file, 'a') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=subprocess.PIPE, text=True)
                                 if result.stderr:
-                                    f.write(str(result.stderr))
+                                    sys.stdout.write(str(result.stderr))
+                        elif "2>>" in parts:
+                            cmd_part = parts[:parts.index('>>')]
+                            output_file = parts[parts.index('>>') + 1]
+                            with open(output_file, 'a') as f:
+                                result = subprocess.run(cmd_part, stdout=f, stderr=f, text=True)
                     except subprocess.CalledProcessError as e:
                         sys.stdout.write(f"ls: {e.cmd}: {e.stderr}\n")
 
