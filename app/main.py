@@ -70,7 +70,7 @@ def main():
 
                 case "echo":
                     try:
-                        print(parts)
+                        
                         if ">" in parts:
                             cmd_part = parts[:parts.index('>')]
                             output_file = parts[parts.index('>') + 1]
@@ -101,6 +101,7 @@ def main():
                                 if result.stderr:                
                                     f.write(str(result.stderr))
                         else:
+                            print(parts)
                             sys.stdout.write(" ".join(parts[1:]) + "\n")
                     except Exception as e:
                         sys.stdout.write(f"echo: {e}\n")
