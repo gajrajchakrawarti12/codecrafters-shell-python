@@ -51,7 +51,7 @@ def handle_redirection(cmd_parts):
     
     return cmd_parts, stdout, stderr
 
-def execute_command(cmd_parts, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+def execute_command(cmd_parts, stdout=None, stderr=None):
     """
     Executes the given command with optional stdout and stderr redirection.
     """
