@@ -59,8 +59,8 @@ def main():
                                 if result.stderr:
                                     sys.stdout.write(str(result.stderr))
                         elif "2>>" in parts:
-                            cmd_part = parts[:parts.index('>>')]
-                            output_file = parts[parts.index('>>') + 1]
+                            cmd_part = parts[:parts.index('2>>')]
+                            output_file = parts[parts.index('2>>') + 1]
                             with open(output_file, 'a') as f:
                                 result = subprocess.run(cmd_part, stdout=f, stderr=f, text=True)
                     except subprocess.CalledProcessError as e:
