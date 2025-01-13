@@ -9,8 +9,8 @@ def handle_redirection(cmd_parts):
     Handles I/O redirection for commands.
     Returns the modified cmd_parts, stdout file, and stderr file.
     """
-    stdout = None
-    stderr = None
+    stdout = subprocess.PIPE
+    stderr = subprocess.PIPE
 
     if '>' in cmd_parts or '>>' in cmd_parts or '1>' in cmd_parts or '1>>' in cmd_parts or '2>' in cmd_parts or '2>>' in cmd_parts:
         while '>' in cmd_parts:
@@ -136,12 +136,6 @@ def main():
                 case _:
                     # Attempt to execute external commands
                     execute_command(cmd_parts, stdout=stdout, stderr=stderr)
-
-            # Close any opened files
-            if stdout:
-                stdout.close()
-            if stderr:
-                stderr.close()
 
         except KeyboardInterrupt:
             sys.stdout.write("\n")
