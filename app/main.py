@@ -51,16 +51,16 @@ def handle_redirection(cmd_parts):
     
     return cmd_parts, stdout, stderr
 
-def execute_command(cmd_parts, stdout=None, stderr=None):
+def execute_command(cmd_parts, f1=None, f2=None):
     """
     Executes the given command with optional stdout and stderr redirection.
     """
     try:
-        result = subprocess.run(cmd_parts, stdout=stdout, stderr=stderr, text=True)
+        result = subprocess.run(cmd_parts, stdout=f1, stderr=f2, text=True)
         if result.stderr:
             sys.stdout.write(result.stderr)
         elif result.stdout:
-            stderr.write(result.stdout)
+            sys.stdout.write(result.stdout)
     except FileNotFoundError:
         sys.stderr.write(f"{cmd_parts[0]}: command not found\n")
     except Exception as e:
