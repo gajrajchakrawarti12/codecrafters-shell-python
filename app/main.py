@@ -57,6 +57,7 @@ def execute_command(cmd_parts, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
     """
     try:
         result = subprocess.run(cmd_parts, stdout=stdout, stderr=stderr, text=True)
+        print(result)
         if result.stderr:
             sys.stdout.write(result.stderr)
     except FileNotFoundError:
