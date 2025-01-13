@@ -56,7 +56,7 @@ def execute_command(cmd_parts, f1=None, f2=None):
     Executes the given command with optional stdout and stderr redirection.
     """
     try:
-        result = subprocess.run(cmd_parts, stdout=f1, stderr=f2, text=True)
+        result = subprocess.run(cmd_parts, stdout=f1, stderr=f2, text=True, shell=True)
         if result.stderr:
             sys.stdout.write(result.stderr)
         elif result.stdout:
