@@ -28,8 +28,8 @@ def handle_redirection(cmd_parts):
         while '1>>' in cmd_parts:
             idx = cmd_parts.index('1>>')
             output_file = cmd_parts[idx + 1]
-            # stdout = open(output_file, 'a')
-            cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
+            stdout = open(output_file, 'a')
+            # cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
         
         while '2>' in cmd_parts:
             idx = cmd_parts.index('2>')
