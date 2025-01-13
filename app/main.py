@@ -12,7 +12,7 @@ def handle_redirection(cmd_parts):
     stdout = None
     stderr = None
 
-    if '>' in cmd_parts or '>>' in cmd_parts or '2>' in cmd_parts or '2>>' in cmd_parts:
+    if '>' in cmd_parts or '>>' in cmd_parts or "1>>" in cmd_parts or '2>' in cmd_parts or '2>>' in cmd_parts:
         while '>' in cmd_parts:
             idx = cmd_parts.index('>')
             output_file = cmd_parts[idx + 1]
@@ -21,6 +21,12 @@ def handle_redirection(cmd_parts):
         
         while '>>' in cmd_parts:
             idx = cmd_parts.index('>>')
+            output_file = cmd_parts[idx + 1]
+            stdout = open(output_file, 'a')
+            cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
+
+        while '1>>' in cmd_parts:
+            idx = cmd_parts.index('1>>')
             output_file = cmd_parts[idx + 1]
             stdout = open(output_file, 'a')
             cmd_parts = cmd_parts[:idx] + cmd_parts[idx + 2:]
