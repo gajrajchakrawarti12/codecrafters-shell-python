@@ -171,11 +171,11 @@ external_commands = []
 
 
 def completer(text: str, state: int) -> str | None:
-    """Tab completion for builtins and external executables with double-tab behavior."""
+    """Tab completion with bell, listing, and longest common prefix logic."""
     global last_completion, external_commands
 
-    all_cmds = list(shell_builtins.keys()) + external_commands
-    matches = [cmd for cmd in all_cmds if cmd.startswith(text)]
+    all_cmds = list(shell_builtins.keys()) + list(external_commands)
+    matches = sorted([cmd for cmd in all_cmds if cmd.startswith(text)])
 
     if state == 0:
         if text != last_completion["text"]:
@@ -185,16 +185,26 @@ def completer(text: str, state: int) -> str | None:
 
         if len(matches) > 1:
             if last_completion["count"] == 1:
-                sys.stdout.write('\a')  # Bell on first tab press
+                sys.stdout.write('\a')  # Ring bell
                 sys.stdout.flush()
             elif last_completion["count"] == 2:
-                print()  # Newline before listing matches
+                print()  # New line before suggestions
                 print("  ".join(matches))
-                # Reprint prompt and partial input
                 sys.stdout.write(f"$ {text}")
                 sys.stdout.flush()
+        elif len(matches) == 1:
+            return matches[0] + " "
+
+        # Compute longest common prefix (if any)
+        if len(matches) > 1:
+            common = os.path.commonprefix(matches)
+            if common != text:
+                readline.insert_text(common[len(text):])
+                readline.redisplay()
+                return None
 
     return matches[state] + " " if state < len(matches) else None
+
 
 
 
