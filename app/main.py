@@ -7,30 +7,50 @@ from contextlib import contextmanager, ExitStack
 
 # ---------------------- Debug Utilities ----------------------
 def print_debug(message: str) -> None:
-    if environment.get("DEBUG"):
+    """Print debug messages when DEBUG environment variable is set."""
+    if environment["DEBUG"]:
         print(f"[DEBUG] {message}")
 
 # ---------------------- PATH Handling ----------------------
 def search_path(path: str) -> None:
-    """Search PATH for executables and store them."""
+    """Recursively search PATH for executables."""
     print_debug(f"Searching for executables in PATH: {path}")
     for directory in path.split(":"):
         if os.path.isdir(directory):
             for file in os.listdir(directory):
                 file_abs = os.path.join(directory, file)
-                if os.path.isfile(file_abs) and os.access(file_abs, os.X_OK):
-                    path_executables[file] = file_abs
+                if os.path.isfile(file_abs):
+                    path_executables.append([file, {file_abs}])
+                    external_commands.add(file)  # ADDITION
+                else:
+                    if os.path.isdir(file):
+                        print_debug(f"Scanning sub-directory: {file_abs}")
+                        search_path({file_abs})
     print_debug(f"Found {len(path_executables)} executables in PATH")
 
 def get_absolute_path(app: str) -> str | None:
-    return path_executables.get(app)
+    """Find absolute path of an executable in PATH."""
+    app_path = None
+    for executable in path_executables:
+        if app in executable:
+            print_debug(f"Found executable {app} in {executable}")
+            app_path = "".join(executable[1])
+        if app_path is not None:
+            return app_path
+    return None
 
 # -------------------- Builtin Functions --------------------
 def get_builtin_function(app: str) -> str | None:
-    return shell_builtins.get(app)
+    """Check if command is a shell builtin."""
+    app_path = None
+    if app in shell_builtins:
+        print_debug(f"Found executable {app} in shell-builtins")
+        app_path = shell_builtins[app]
+    return app_path if app_path is not None else None
 
 # ------------------- Environment Handling -------------------
 def get_environment_value(key: str = None) -> None:
+    """Read environment variables from OS."""
     if key is None:
         print("No key provided. Nothing to do.")
         return
@@ -39,9 +59,11 @@ def get_environment_value(key: str = None) -> None:
 
 # ------------------ Builtin Implementations ------------------
 def shell_builtin_echo(args: list) -> None:
+    """Echo command implementation."""
     print(" ".join(args))
 
 def shell_builtin_exit(exit_code: list) -> None:
+    """Exit command implementation."""
     if len(exit_code) > 1:
         print(f"exit: Invalid number of arguments. Expected 1, given {len(exit_code)}")
     elif not exit_code:
@@ -50,6 +72,7 @@ def shell_builtin_exit(exit_code: list) -> None:
         sys.exit(int("".join(exit_code)))
 
 def shell_builtin_type(args: list) -> None:
+    """Type command implementation."""
     if len(args) != 1:
         print(f"type: Invalid number of arguments. Expected 1, given {len(args)}")
         return
@@ -61,23 +84,28 @@ def shell_builtin_type(args: list) -> None:
         print(f"{command} is {exec_path}" if exec_path else f"{command}: not found")
 
 def shell_builtin_pwd(args: list = None) -> str:
+    """PWD command implementation."""
     current_dir = os.getcwd()
     if not args:
         print(current_dir)
     return current_dir
 
 def shell_builtin_cd(args: list) -> None:
+    """CD command implementation."""
     if len(args) != 1:
         print(f"cd: Invalid number of arguments. Expected 1, given {len(args)}")
         return
     target_dir = args[0]
     print_debug(f"Changing directory to {target_dir}")
+    # Handle tilde expansion
     if target_dir.startswith("~"):
         print_debug(f"Tilde detected. Replacing with {environment['HOME']}")
         target_dir = target_dir.replace("~", environment["HOME"])
+    # Handle relative paths
     if not os.path.isabs(target_dir):
         print_debug(f"Relative path detected. Prefixing with cwd.")
         target_dir = os.path.join(shell_builtin_pwd(True), target_dir)
+    # Validate and change directory
     if os.path.exists(target_dir):
         if os.path.isdir(target_dir):
             print_debug(f"Changing cwd to {target_dir}")
@@ -89,6 +117,7 @@ def shell_builtin_cd(args: list) -> None:
 
 # -------------------- Process Execution --------------------
 def launch_executable(command: str, args: list = None) -> tuple[str, str]:
+    """Execute external command and capture output."""
     print_debug(f"Launching executable {command}. Arguments: {args}")
     command_list = [command]
     if args:
@@ -101,6 +130,7 @@ def launch_executable(command: str, args: list = None) -> tuple[str, str]:
 # ------------------- Output Redirection -------------------
 @contextmanager
 def redirect_stdout(new_target):
+    """Context manager for stdout redirection."""
     original_stdout = sys.stdout
     sys.stdout = new_target
     try:
@@ -110,6 +140,7 @@ def redirect_stdout(new_target):
 
 @contextmanager
 def redirect_stderr(new_target):
+    """Context manager for stderr redirection."""
     original_stderr = sys.stderr
     sys.stderr = new_target
     try:
@@ -119,12 +150,13 @@ def redirect_stderr(new_target):
 
 # ---------------------- Main Execution Logic ----------------------
 def execute_command(command: str, arguments: list) -> None:
+    """Unified command execution logic."""
     if builtin := get_builtin_function(command):
         print_debug(f"Launching {command}")
         shell_builtins[command](arguments)
     elif get_absolute_path(command):
         print_debug(f"Found {command}. Executing.")
-        stdout, stderr = launch_executable(get_absolute_path(command), arguments)
+        stdout, stderr = launch_executable(command, arguments)
         if stdout:
             print(stdout.strip())
         if stderr:
@@ -134,25 +166,32 @@ def execute_command(command: str, arguments: list) -> None:
 
 # -------------------- Auto Completion --------------------
 def completer(text: str, state: int) -> str | None:
-    """Tab completion for built-ins and external executables."""
-    all_cmds = list(shell_builtins.keys()) + list(path_executables.keys())
-    matches = [cmd + " " for cmd in all_cmds if cmd.startswith(text)]
+    """Tab completion for builtin and external commands."""
+    matches = [cmd + " " for cmd in list(shell_builtins.keys()) + list(external_commands) if cmd.startswith(text)]
     return matches[state] if state < len(matches) else None
 
 # ---------------------- Main Shell Loop ----------------------
 def main() -> None:
+    """Main shell program loop."""
+    # Initialize environment
     get_environment_value("DEBUG")
     get_environment_value("PATH")
     get_environment_value("HOME")
     search_path(environment["PATH"])
+    load_external_commands()  # ADDITION
+
+    # Setup tab completion
     readline.set_completer(completer)
     readline.parse_and_bind("tab: complete")
+
     while True:
         try:
+            # Read input
             sys.stdout.write("$ ")
             command = input().strip()
             if not command:
                 continue
+            # Parse command and arguments
             parts = shlex.split(command)
             if not parts:
                 continue
@@ -160,7 +199,7 @@ def main() -> None:
             stdout_info = None
             stderr_info = None
             redirection_indices = set()
-
+            # Find all redirections
             for i, arg in enumerate(arguments):
                 if ">>" in arg:
                     parts = arg.split(">>", 1)
@@ -174,11 +213,9 @@ def main() -> None:
                     mode = "w"
                 else:
                     continue
-
                 if stream_part not in ("1", "2"):
                     print(f"Invalid stream: {stream_part}")
                     continue
-
                 if file_part:
                     output_file = file_part
                     redirection_indices.add(i)
@@ -189,38 +226,34 @@ def main() -> None:
                     else:
                         print("Error: No output file specified")
                         continue
-
                 if stream_part == "1":
                     stdout_info = (output_file, mode)
                 else:
                     stderr_info = (output_file, mode)
-
             arguments = [
                 arg for i, arg in enumerate(arguments) if i not in redirection_indices
             ]
-
             contexts = []
             files = []
-
             if stdout_info:
                 filename, mode = stdout_info
                 f_stdout = open(filename, mode)
                 files.append(f_stdout)
                 contexts.append(redirect_stdout(f_stdout))
-
             if stderr_info:
                 filename, mode = stderr_info
                 f_stderr = open(filename, mode)
                 files.append(f_stderr)
                 contexts.append(redirect_stderr(f_stderr))
-
             with ExitStack() as stack:
                 for ctx in contexts:
                     stack.enter_context(ctx)
-                execute_command(command, arguments)
-                for f in files:
-                    f.close()
-
+                if contexts:
+                    execute_command(command, arguments)
+                    for f in files:
+                        f.close()
+                else:
+                    execute_command(command, arguments)
         except Exception as e:
             print(f"Error: {str(e)}")
 
@@ -232,9 +265,20 @@ shell_builtins = {
     "pwd": shell_builtin_pwd,
     "cd": shell_builtin_cd,
 }
-
-path_executables = {}  # updated to dict for fast lookup
+path_executables = []
 environment = {}
+external_commands = set()  # ADDITION
+
+# Load external commands (used in completer)
+def load_external_commands():
+    external_commands.clear()
+    for dir_path in os.environ.get("PATH", "").split(os.pathsep):
+        if os.path.isdir(dir_path):
+            for file in os.listdir(dir_path):
+                full_path = os.path.join(dir_path, file)
+                if os.access(full_path, os.X_OK) and not os.path.isdir(full_path):
+                    external_commands.add(file)
 
 if __name__ == "__main__":
     main()
+# ---------------------- End of Main ----------------------                   
