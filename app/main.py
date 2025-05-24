@@ -169,7 +169,6 @@ def execute_command(command: str, arguments: list) -> None:
 last_completion = {"text": "", "count": 0}
 external_commands = []
 
-
 def completer(text: str, state: int) -> str | None:
     """Tab completion with bell, listing, and longest common prefix logic."""
     global last_completion, external_commands
@@ -188,15 +187,12 @@ def completer(text: str, state: int) -> str | None:
                 sys.stdout.write('\a')  # Ring bell
                 sys.stdout.flush()
             elif last_completion["count"] == 2:
-                print()  # New line before suggestions
+                print()
                 print("  ".join(matches))
                 sys.stdout.write(f"$ {text}")
                 sys.stdout.flush()
-        elif len(matches) == 1:
-            return matches[0] + " "
 
-        # Compute longest common prefix (if any)
-        if len(matches) > 1:
+            # Compute and insert the longest common prefix
             common = os.path.commonprefix(matches)
             if common != text:
                 readline.insert_text(common[len(text):])
@@ -204,6 +200,7 @@ def completer(text: str, state: int) -> str | None:
                 return None
 
     return matches[state] + " " if state < len(matches) else None
+
 
 
 
