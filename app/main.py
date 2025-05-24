@@ -199,7 +199,7 @@ def completer(text: str, state: int) -> str | None:
                 readline.redisplay()
                 return None
 
-    return matches[state] + " " if state < len(matches) else None
+    return f"{matches[state]} " if state < len(matches) else None
 
 
 
