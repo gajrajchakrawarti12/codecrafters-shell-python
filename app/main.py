@@ -205,49 +205,66 @@ def completer(text: str, state: int) -> str | None:
     return matches[state] + " " if state < len(matches) else None
 
 # ---------------------- Pipeline Execution ----------------------          
-def execute_pipeline(command1: list, command2: list):
-    print_debug(f"Executing pipeline: {' '.join(command1)} | {' '.join(command2)}")
+def execute_pipeline(commands):
+    n = len(commands)
+    pipes = [os.pipe() for _ in range(n - 1)]
+    pids = []
 
-    read_fd, write_fd = os.pipe()
-
-    # Helper: run a command (built-in or external) in a child process with given stdin/stdout
-    def run_command_in_child(cmd, stdin_fd, stdout_fd):
+    for i, cmd in enumerate(commands):
         pid = os.fork()
         if pid == 0:
-            # Child
-            if stdin_fd != 0:
-                os.dup2(stdin_fd, 0)
-            if stdout_fd != 1:
-                os.dup2(stdout_fd, 1)
-            # Close pipe fds in child after dup
-            os.close(read_fd)
-            os.close(write_fd)
+            # Child process
 
-            # Check if cmd is builtin
+            # Set up stdin
+            if i == 0:
+                # First command stdin is original stdin (fd 0)
+                pass
+            else:
+                os.dup2(pipes[i-1][0], 0)
+
+            # Set up stdout
+            if i == n - 1:
+                # Last command stdout is original stdout (fd 1)
+                pass
+            else:
+                os.dup2(pipes[i][1], 1)
+
+            # Close all pipe fds in child
+            for (r, w) in pipes:
+                try:
+                    os.close(r)
+                except OSError:
+                    pass
+                try:
+                    os.close(w)
+                except OSError:
+                    pass
+
+            # Execute built-in or external command
             if cmd[0] in shell_builtins:
-                # Run builtin and exit
                 shell_builtins[cmd[0]](cmd[1:])
                 os._exit(0)
             else:
-                # Exec external
                 try:
                     os.execvp(cmd[0], cmd)
                 except FileNotFoundError:
                     print(f"{cmd[0]}: command not found", file=sys.stderr)
                     os._exit(127)
-            # Failsafe exit
             os._exit(1)
-        return pid
 
-    pid1 = run_command_in_child(command1, 0, write_fd)
-    pid2 = run_command_in_child(command2, read_fd, 1)
+        else:
+            # Parent
+            pids.append(pid)
 
-    # Parent closes pipe fds and waits
-    os.close(read_fd)
-    os.close(write_fd)
+    # Close all pipe fds in parent
+    for (r, w) in pipes:
+        os.close(r)
+        os.close(w)
 
-    os.waitpid(pid1, 0)
-    os.waitpid(pid2, 0)
+    # Wait for all children
+    for pid in pids:
+        os.waitpid(pid, 0)
+
 
 
 # ---------------------- Main Shell Loop ----------------------
@@ -277,8 +294,8 @@ def main() -> None:
             # Handle piped commands first
             if "|" in user_input:
                 parts = [shlex.split(part.strip()) for part in user_input.split("|", 1)]
-                if len(parts) == 2:
-                    execute_pipeline(parts[0], parts[1])
+                if len(parts) > 1:
+                    execute_pipeline(parts)
                 else:
                     print("Invalid pipeline format.")
                 continue
