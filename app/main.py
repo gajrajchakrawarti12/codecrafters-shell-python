@@ -165,10 +165,33 @@ def execute_command(command: str, arguments: list) -> None:
         print(f"{command}: command not found")
 
 # -------------------- Auto Completion --------------------
+last_completion = {"text": "", "count": 0}  # Tracks last text and tab count
+
 def completer(text: str, state: int) -> str | None:
-    """Tab completion for builtin and external commands."""
-    matches = [cmd + " " for cmd in list(shell_builtins.keys()) + list(external_commands) if cmd.startswith(text)]
-    return matches[state] if state < len(matches) else None
+    """Tab completion for builtin and external commands with double-tab behavior."""
+    global last_completion
+
+    all_cmds = list(shell_builtins.keys()) + list(external_commands)
+    matches = [cmd for cmd in all_cmds if cmd.startswith(text)]
+
+    if state == 0:
+        if text != last_completion["text"]:
+            last_completion = {"text": text, "count": 1}
+        else:
+            last_completion["count"] += 1
+
+        if len(matches) > 1:
+            if last_completion["count"] == 1:
+                sys.stdout.write('\a')  # First TAB: ring bell
+                sys.stdout.flush()
+            elif last_completion["count"] == 2:
+                print()  # Move to new line
+                print("  ".join(matches))
+                # Reprint prompt and partial input
+                sys.stdout.write(f"$ {text}")
+                sys.stdout.flush()
+    return matches[state] + " " if state < len(matches) else None
+
 
 # ---------------------- Main Shell Loop ----------------------
 def main() -> None:
