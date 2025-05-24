@@ -293,7 +293,7 @@ def main() -> None:
 
             # Handle piped commands first
             if "|" in user_input:
-                parts = [shlex.split(part.strip()) for part in user_input.split("|", 1)]
+                parts = [shlex.split(part.strip()) for part in user_input.split("|")]
                 if len(parts) > 1:
                     execute_pipeline(parts)
                 else:
