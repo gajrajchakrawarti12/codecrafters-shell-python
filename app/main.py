@@ -165,13 +165,16 @@ def execute_command(command: str, arguments: list) -> None:
         print(f"{command}: command not found")
 
 # -------------------- Auto Completion --------------------
-last_completion = {"text": "", "count": 0}  # Tracks last text and tab count
+# Track last tab completion input and count of presses
+last_completion = {"text": "", "count": 0}
+external_commands = []
+
 
 def completer(text: str, state: int) -> str | None:
-    """Tab completion for builtin and external commands with double-tab behavior."""
-    global last_completion
+    """Tab completion for builtins and external executables with double-tab behavior."""
+    global last_completion, external_commands
 
-    all_cmds = list(shell_builtins.keys()) + list(external_commands)
+    all_cmds = list(shell_builtins.keys()) + external_commands
     matches = [cmd for cmd in all_cmds if cmd.startswith(text)]
 
     if state == 0:
@@ -182,15 +185,17 @@ def completer(text: str, state: int) -> str | None:
 
         if len(matches) > 1:
             if last_completion["count"] == 1:
-                sys.stdout.write('\a')  # First TAB: ring bell
+                sys.stdout.write('\a')  # Bell on first tab press
                 sys.stdout.flush()
             elif last_completion["count"] == 2:
-                print()  # Move to new line
+                print()  # Newline before listing matches
                 print("  ".join(matches))
                 # Reprint prompt and partial input
                 sys.stdout.write(f"$ {text}")
                 sys.stdout.flush()
+
     return matches[state] + " " if state < len(matches) else None
+
 
 
 # ---------------------- Main Shell Loop ----------------------
@@ -204,6 +209,7 @@ def main() -> None:
     load_external_commands()  # ADDITION
 
     # Setup tab completion
+    external_commands = [exe[0] for exe in path_executables]
     readline.set_completer(completer)
     readline.parse_and_bind("tab: complete")
 
