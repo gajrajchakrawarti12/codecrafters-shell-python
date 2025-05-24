@@ -205,8 +205,34 @@ def completer(text: str, state: int) -> str | None:
     return matches[state] + " " if state < len(matches) else None
 
 
+def execute_pipeline(command1: list, command2: list):
+    """Execute command1 | command2 using pipe and forks."""
+    print_debug(f"Executing pipeline: {' '.join(command1)} | {' '.join(command2)}")
+    
+    # Create a pipe (read_fd, write_fd)
+    read_fd, write_fd = os.pipe()
 
+    # First child: executes command1
+    pid1 = os.fork()
+    if pid1 == 0:
+        os.dup2(write_fd, 1)  # redirect stdout to pipe
+        os.close(read_fd)
+        os.close(write_fd)
+        os.execvp(command1[0], command1)
+    
+    # Second child: executes command2
+    pid2 = os.fork()
+    if pid2 == 0:
+        os.dup2(read_fd, 0)  # redirect stdin from pipe
+        os.close(read_fd)
+        os.close(write_fd)
+        os.execvp(command2[0], command2)
 
+    # Parent: closes pipe and waits
+    os.close(read_fd)
+    os.close(write_fd)
+    os.waitpid(pid1, 0)
+    os.waitpid(pid2, 0)
 
 
 # ---------------------- Main Shell Loop ----------------------
@@ -232,11 +258,19 @@ def main() -> None:
             command = input().strip()
             if not command:
                 continue
-            # Parse command and arguments
+
             parts = shlex.split(command)
             if not parts:
                 continue
-            command, *arguments = parts
+
+            command = parts[0]
+            arguments = parts[1:]
+            # Parse command and arguments
+            if "|" in command:
+                parts = [shlex.split(part.strip()) for part in command.split("|", 1)]
+                if len(parts) == 2:
+                    execute_pipeline(parts[0], parts[1])
+                    continue
             stdout_info = None
             stderr_info = None
             redirection_indices = set()
