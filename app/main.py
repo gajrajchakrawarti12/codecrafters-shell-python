@@ -209,6 +209,7 @@ def main() -> None:
     load_external_commands()  # ADDITION
 
     # Setup tab completion
+    global external_commands
     external_commands = [exe[0] for exe in path_executables]
     readline.set_completer(completer)
     readline.parse_and_bind("tab: complete")
