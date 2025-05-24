@@ -204,33 +204,48 @@ def completer(text: str, state: int) -> str | None:
 
     return matches[state] + " " if state < len(matches) else None
 
-
+# ---------------------- Pipeline Execution ----------------------          
 def execute_pipeline(command1: list, command2: list):
-    """Execute command1 | command2 using pipe and forks."""
     print_debug(f"Executing pipeline: {' '.join(command1)} | {' '.join(command2)}")
-    
-    # Create a pipe (read_fd, write_fd)
+
     read_fd, write_fd = os.pipe()
 
-    # First child: executes command1
-    pid1 = os.fork()
-    if pid1 == 0:
-        os.dup2(write_fd, 1)  # redirect stdout to pipe
-        os.close(read_fd)
-        os.close(write_fd)
-        os.execvp(command1[0], command1)
-    
-    # Second child: executes command2
-    pid2 = os.fork()
-    if pid2 == 0:
-        os.dup2(read_fd, 0)  # redirect stdin from pipe
-        os.close(read_fd)
-        os.close(write_fd)
-        os.execvp(command2[0], command2)
+    # Helper: run a command (built-in or external) in a child process with given stdin/stdout
+    def run_command_in_child(cmd, stdin_fd, stdout_fd):
+        pid = os.fork()
+        if pid == 0:
+            # Child
+            if stdin_fd != 0:
+                os.dup2(stdin_fd, 0)
+            if stdout_fd != 1:
+                os.dup2(stdout_fd, 1)
+            # Close pipe fds in child after dup
+            os.close(read_fd)
+            os.close(write_fd)
 
-    # Parent: closes pipe and waits
+            # Check if cmd is builtin
+            if cmd[0] in shell_builtins:
+                # Run builtin and exit
+                shell_builtins[cmd[0]](cmd[1:])
+                os._exit(0)
+            else:
+                # Exec external
+                try:
+                    os.execvp(cmd[0], cmd)
+                except FileNotFoundError:
+                    print(f"{cmd[0]}: command not found", file=sys.stderr)
+                    os._exit(127)
+            # Failsafe exit
+            os._exit(1)
+        return pid
+
+    pid1 = run_command_in_child(command1, 0, write_fd)
+    pid2 = run_command_in_child(command2, read_fd, 1)
+
+    # Parent closes pipe fds and waits
     os.close(read_fd)
     os.close(write_fd)
+
     os.waitpid(pid1, 0)
     os.waitpid(pid2, 0)
 
