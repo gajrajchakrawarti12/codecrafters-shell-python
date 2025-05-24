@@ -170,21 +170,23 @@ last_completion = {"text": "", "count": 0}
 external_commands = []
 
 def completer(text: str, state: int) -> str | None:
-    """Tab completion with bell, listing, and longest common prefix logic."""
+    """Tab completion for builtins and external executables with space after single match."""
     global last_completion, external_commands
 
-    all_cmds = list(shell_builtins.keys()) + list(external_commands)
-    matches = sorted([cmd for cmd in all_cmds if cmd.startswith(text)])
+    all_cmds = sorted(list(shell_builtins.keys()) + list(external_commands))
+    matches = [cmd for cmd in all_cmds if cmd.startswith(text)]
 
+    # On first tab press, handle suggestions
     if state == 0:
         if text != last_completion["text"]:
             last_completion = {"text": text, "count": 1}
         else:
             last_completion["count"] += 1
 
+        # Handle multiple matches
         if len(matches) > 1:
             if last_completion["count"] == 1:
-                sys.stdout.write('\a')  # Ring bell
+                sys.stdout.write('\a')  # Bell
                 sys.stdout.flush()
             elif last_completion["count"] == 2:
                 print()
@@ -192,14 +194,16 @@ def completer(text: str, state: int) -> str | None:
                 sys.stdout.write(f"$ {text}")
                 sys.stdout.flush()
 
-            # Compute and insert the longest common prefix
-            common = os.path.commonprefix(matches)
-            if common != text:
-                readline.insert_text(common[len(text):])
+        # If exactly one match, insert with space
+        elif len(matches) == 1:
+            completion = matches[0]
+            if completion != text:
+                readline.insert_text(completion[len(text):] + " ")
                 readline.redisplay()
-                return None
+            return None
 
-    return f"{matches[state]} " if state < len(matches) else None
+    return matches[state] + " " if state < len(matches) else None
+
 
 
 
