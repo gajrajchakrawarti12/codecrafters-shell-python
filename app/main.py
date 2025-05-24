@@ -255,22 +255,26 @@ def main() -> None:
         try:
             # Read input
             sys.stdout.write("$ ")
-            command = input().strip()
-            if not command:
+            user_input = input().strip()
+            if not user_input:
                 continue
 
-            parts = shlex.split(command)
-            if not parts:
-                continue
-
-            command = parts[0]
-            arguments = parts[1:]
-            # Parse command and arguments
-            if "|" in command:
-                parts = [shlex.split(part.strip()) for part in command.split("|", 1)]
+            # Handle piped commands first
+            if "|" in user_input:
+                parts = [shlex.split(part.strip()) for part in user_input.split("|", 1)]
                 if len(parts) == 2:
                     execute_pipeline(parts[0], parts[1])
-                    continue
+                else:
+                    print("Invalid pipeline format.")
+                continue
+
+            # Now handle normal single command
+            parts = shlex.split(user_input)
+            if not parts:
+                continue
+            command = parts[0]
+            arguments = parts[1:]
+
             stdout_info = None
             stderr_info = None
             redirection_indices = set()
